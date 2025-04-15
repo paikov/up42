@@ -5,6 +5,7 @@ This repo provides Terraform and Helm code that deploys an s3www/MinIO applicati
 ## Install
 
 To install the code as intended, please execute (from the *./terraform* directory): *terraform init && terraform apply [-auto-approve]* 
+
 For debugging purposes, to install the Helm chart outside of Terraform (from the *./helm* directory): *helm install up42-release . -n up42-ns --create-namespace --debug*
 
 ## Terraform behind-the-scenes
