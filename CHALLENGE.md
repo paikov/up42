@@ -2,7 +2,7 @@
 
 * I decided to prevent the definition of Kubernetes resources such as *namespace* and *service* on both the Terraform level and the Helm level (may lead to inconsistency): Changed Terraform code to dynamically load the names of the resources from Helm's *values.html* file, maintaining a single source of truth.  
 * Initialization of bucket and its contents outside of any specific MinIO pod: Created a separate Job object for content initialization, which fetches the files and pushes them to the bucket. Made sure that the job runs after the creation of the MinIO deployment/service, otherwise the job fails because there's no access to the bucket.
-* Created an index.html file to satisfy the demands of s3www, and to have it load the GIF file.
+* Created an index.html file to satisfy the demands of s3www and configured the initialization job to fetch it together with the GIF file.
 * Started out with static values for MinIO user/password, then for increased security, changed the password to be randomly generated and stored in a Secret object.
 * Shared storage for all MinIO pods: Tried to balance functionality, scalability, and possible limitations of different storage systems. Evaluated Deployment, StatefulSet, different settings for PVC, individual storage, shared storage, different accessModes. Eventually decided on Deployment+shared storage+ReadOnlyMany.
 * Issues with compatiblity with Prometheus's auto discovery: Caused by a labels discrepancy between the ServiceMonitor and the Prometheus configuration, as expected. Fixed by adding a custom label (*release: prometheus*) in the MinIO ServiceMonitor.
@@ -17,3 +17,4 @@
 * If the users need access to the MinIO credentials, the Terraform outputs should be configured to output the username/password, with the password's output configured as *sensitive = true*.
 * The *application_url* Terraform output is configured to use the *kubernetes_service* object's *status[0].load_balancer[0].ingress[0].hostname* attribute, which may need to be adjusted for production.
 * The content initialization job is configured to overwrite the files in the bucket with files that it fetches from the web. If this is not desired behavior, the job should be reconfigured. 
+* MinIO's PVC configuration falls back on emptyDir if it can't find other storage. This may be unsuitable for production and could be changed.

@@ -16,7 +16,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0
+      maxUnavailable: 1
   template:
     metadata:
       labels:
@@ -37,6 +37,7 @@ spec:
       - name: s3www
         image: "{{ .Values.s3www.image.repository }}:{{ .Values.s3www.image.tag }}"
         imagePullPolicy: {{ .Values.s3www.image.pullPolicy }}
+        # Using args because s3www doesn't seem to use environment variables
         args:
           - -accessKey={{ .Values.minio.username }}
           - -secretKey={{ include "up42-app.shared-minio-password" . }}

@@ -5,7 +5,7 @@ minio:
   bucketName: "up42-bucket"
   image:
     repository: minio/minio
-    tag: RELEASE.2025-04-08T15-41-24Z-cpuv1
+    tag: latest
     pullPolicy: IfNotPresent
   # Service for internal cluster communication from s3www to MinIO
   service:
