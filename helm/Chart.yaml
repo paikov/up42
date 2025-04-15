@@ -1,0 +1,6 @@
+apiVersion: v2
+name: up42-app-chart
+description: A Helm chart to deploy MinIO and s3www for serving files over HTTP
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
