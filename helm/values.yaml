@@ -40,6 +40,10 @@ minio:
     accessModes:
       - ReadOnlyMany
     size: 1Gi
+  serviceAccount:
+    create: true
+    name: "minio-service-account"
+    annotations: {}
 
 s3www:
   replicaCount: 2

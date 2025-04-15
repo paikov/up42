@@ -27,6 +27,7 @@ locals {
   chart_values       = yamldecode(file(local.chart_values_path))
   chart_namespace    = try(local.chart_values.namespace, "${var.ns}")
   chart_service_name = try(local.chart_values.s3www.service.name, "${var.service_name}")
+  application_url    = "http://${data.kubernetes_service.s3www_service.status[0].load_balancer[0].ingress[0].hostname}"
 }
 
 resource "helm_release" "app_release" {

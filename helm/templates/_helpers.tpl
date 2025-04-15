@@ -65,3 +65,21 @@ Create the name of the shared secret
 {{- define "up42-app.shared-minio-password" -}}
 {{ .Release.Name }}-shared-secret
 {{- end }}
+
+{{/* vim: set filetype=gotemplate: */}}
+{{/* ... other helpers (fullname, name, chart, labels, selectorLabels) ... */}}
+
+{{/*
+Create the name of the service account to use for MinIO
+*/}}
+{{- define "up42-app.minioServiceAccountName" -}}
+{{- if .Values.minio.serviceAccount.create }}
+    {{- /* Use provided name if set, otherwise generate default */}}
+    {{- default (printf "%s-minio" (include "up42-app.fullname" .)) .Values.minio.serviceAccount.name }}
+{{- else }}
+    {{- /* Use default service account if not creating a new one */}}
+    {{- "default" }}
+{{- end }}
+{{- end -}}
+
+

@@ -16,4 +16,4 @@
 * MinIO uses both an API endpoint (TCP port 9000) and a web console endpoint (TCP port 9001). Only API access was necessary within the scope of the challenge, so I didn't expose the web console port at the deployment or the service level. These changes can be made if the web console is necessary.
 * If the users need access to the MinIO credentials, the Terraform outputs should be configured to output the username/password, with the password's output configured as *sensitive = true*.
 * The *application_url* Terraform output is configured to use the *kubernetes_service* object's *status[0].load_balancer[0].ingress[0].hostname* attribute, which may need to be adjusted for production.
-  
+* The content initialization job is configured to overwrite the files in the bucket with files that it fetches from the web. If this is not desired behavior, the job should be reconfigured. 

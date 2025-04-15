@@ -9,7 +9,7 @@ For debugging purposes, to install the Helm chart outside of Terraform (from the
 
 ## Terraform behind-the-scenes
 
-Terraform is configured to use the Helm and Kubernetes providers. *~/.kube/config* is assumed to exist and to contain configuration that allows Kubernetes commands to make changes to the relevant Kubernetes system.
+Terraform is configured to use the Helm and Kubernetes providers. *~/.kube/config* is assumed to exist and to contain configuration that allows Kubernetes commands to make changes to the relevant Kubernetes system. At the final stage, Terraform will self-test and attempt to access the HTTP endpoint and fetch the file to be served. It will fail (return exit code 1) if the self-test fails and will succeed (return exit code 1) if the self-test succeeds.
 
 The Terraform code will run Helm to install the custom Helm chart. The Terraform outputs will include the HTTP endpoint to access (*application_url*) and the Kubernetes namespace where the objects will be deployed (*deployed_namespace*).
 

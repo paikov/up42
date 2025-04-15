@@ -23,6 +23,7 @@ spec:
         {{- include "up42-app.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: minio
     spec:
+      serviceAccountName: {{ include "up42-app.minioServiceAccountName" . }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
