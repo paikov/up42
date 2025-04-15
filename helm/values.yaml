@@ -1,0 +1,78 @@
+namespace: "up42-ns"
+
+minio:
+  replicaCount: 2
+  bucketName: "up42-bucket"
+  image:
+    repository: minio/minio
+    tag: RELEASE.2025-04-08T15-41-24Z-cpuv1
+    pullPolicy: IfNotPresent
+  # Service for internal cluster communication from s3www to MinIO
+  service:
+    name: minio-service
+    port: 9000
+  username: "minioadmin"
+  metrics:
+    enabled: true
+    authType: "public"
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        # Added for compatibility with the existing installation of Prometheus. Other configurations may require other values.
+        release: prometheus
+      interval: "30s"
+      scrapeTimeout: "10s"
+      path: "/minio/prometheus/metrics"
+      scheme: http
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: true
+    minAvailable: 1
+  persistence:
+    enabled: true
+    # An empty storageClassName will choose the default StorageClass. Enter a custom storageClassName value to use a different StorageClass.
+    storageClassName: ""
+    accessModes:
+      - ReadOnlyMany
+    size: 1Gi
+
+s3www:
+  replicaCount: 2
+  image:
+    repository: y4m4/s3www
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Service to expose the web application externally
+  service:
+    name: s3www-service
+    type: LoadBalancer
+    port: 80
+    targetPort: 8080
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+contentInitializer:
+  enabled: true
+  image:
+    repository: alpine
+    tag: latest
+    pullPolicy: IfNotPresent
+  filesToDownload:
+    - url: "https://raw.githubusercontent.com/paikov/up42/refs/heads/main/html/index.html"
+      targetFileName: "index.html"
+    - url: "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXh5bTB5azZxMjBsYzI4Y2s3NHU2cncwMjg1Z3A0ZjRlanp3NnlnYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VdiQKDAguhDSi37gn1/giphy.gif"
+      targetFileName: "giphy.gif"
+  initialDelaySeconds: 1
+
