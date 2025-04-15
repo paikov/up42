@@ -1,6 +1,6 @@
 ## Thought process and solutions to issues as they came up
 
-* Preventing the definition of Kubernetes resources such as namespace and service on both the Terraform level and the Helm level (may lead to inconsistency): Changed Terraform code to dynamically load the names of the resources from Helm's values.html file.  
+* I decided to prevent the definition of Kubernetes resources such as *namespace* and *service* on both the Terraform level and the Helm level (may lead to inconsistency): Changed Terraform code to dynamically load the names of the resources from Helm's *values.html* file, maintaining a single source of truth.  
 * Initialization of bucket and its contents outside of any specific MinIO pod: Created a separate Job object for content initialization, which fetches the files and pushes them to the bucket. Made sure that the job runs after the creation of the MinIO deployment/service, otherwise the job fails because there's no access to the bucket.
 * Created an index.html file to satisfy the demands of s3www, and to have it load the GIF file.
 * Started with static values for MinIO user/password, for increased security changed the password to be randomly generated and stored in a Secret object.
