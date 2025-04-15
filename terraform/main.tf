@@ -26,7 +26,7 @@ locals {
   chart_values_path  = "${path.module}/${var.helm_chart_path}/values.yaml"
   chart_values       = yamldecode(file(local.chart_values_path))
   chart_namespace    = try(local.chart_values.namespace, "${var.ns}")
-  chart_service_name = try(local.chart_values.service.name, "${var.service_name}")
+  chart_service_name = try(local.chart_values.s3www.service.name, "${var.service_name}")
 }
 
 resource "helm_release" "app_release" {
