@@ -1,0 +1,20 @@
+{{- if .Values.s3www.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: s3www-pdb
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "up42-app.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.s3www.pdb.minAvailable }}
+  minAvailable: {{ .Values.s3www.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.s3www.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.s3www.pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "up42-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: s3www
+{{- end }}

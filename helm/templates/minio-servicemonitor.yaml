@@ -1,0 +1,30 @@
+{{- if .Values.minio.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: minio-servicemonitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "up42-app.labels" . | nindent 4 }}
+    {{- with .Values.minio.metrics.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "up42-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: minio
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+  - port: minio-api-port
+    path: {{ .Values.minio.metrics.path | default "/minio/prometheus/metrics" }}
+    {{- if .Values.minio.metrics.serviceMonitor.interval }}
+    interval: {{ .Values.minio.metrics.serviceMonitor.interval }}
+    {{- end }}
+    {{- if .Values.minio.metrics.serviceMonitor.scrapeTimeout }}
+    scrapeTimeout: {{ .Values.minio.metrics.serviceMonitor.scrapeTimeout }}
+    {{- end }}
+{{- end }}
+
