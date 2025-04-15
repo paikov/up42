@@ -23,6 +23,6 @@ Helm chart will create the following Kubernetes objects:
 * s3www deployment and service, which will serve the files from the MinIO bucket over HTTP via a LoadBalancer (using TCP port 8080 internally and TCP port 80 externally).
 * HorizontalPodAutoscaler objects for both s3www and MinIO, to scale the deployments up and down dynamically, based on CPU and memory usage.
 * PodDisruptionBudget objects for both s3www and MinIO to ensure high availability during disruptions.
-* An object of type Secret to store MinIO credentials and make them available to both MinIO, s3www and the content initializer Job.
+* An object of type Secret to store MinIO credentials (the password is generated dynamically) and make them available to both MinIO, s3www and the content initializer Job.
 * A PersistentVolumeClaim for the MinIO bucket to enable persistent storage that is shared by all MinIO pods.
 * A ServiceMonitor for MinIO, to export metrics to Prometheus.
