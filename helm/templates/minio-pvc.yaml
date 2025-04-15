@@ -1,0 +1,20 @@
+{{- if and .Values.minio.persistence.enabled (not .Values.minio.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "up42-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: minio
+spec:
+  accessModes:
+    {{- toYaml .Values.minio.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.minio.persistence.size }}
+  {{- if .Values.minio.persistence.storageClassName }}
+  storageClassName: {{ .Values.minio.persistence.storageClassName }}
+  {{- end }}
+{{- end }}
+

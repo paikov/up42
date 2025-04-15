@@ -1,0 +1,53 @@
+{{- if .Values.contentInitializer.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: content-initializer
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "up42-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: content-initializer
+  annotations:
+    # Run the job automatically during installation/upgrade
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "up42-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: content-initializer
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: content-initializer
+        image: "{{ .Values.contentInitializer.image.repository }}:{{ .Values.contentInitializer.image.tag }}"
+        imagePullPolicy: {{ .Values.contentInitializer.image.pullPolicy }}
+        env:
+        - name: MINIO_ENDPOINT_URL
+          value: "http://{{ .Values.minio.service.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.minio.service.port }}"
+        - name: MINIO_ACCESS_KEY
+          value: {{ .Values.minio.username | quote }}
+        - name: MINIO_SECRET_KEY
+          value: {{ include "up42-app.shared-minio-password" . }}
+        - name: MINIO_BUCKET_NAME
+          value: {{ .Values.minio.bucketName | quote }}
+        - name: INITIAL_DELAY
+          value: {{ .Values.contentInitializer.initialDelaySeconds | default 5 | quote }}
+        # Shell script that initializes the bucket and populates it with the listed files
+        command:
+        - /bin/sh
+        - -ec
+        - |
+          apk update && apk add --no-cache minio-client wget
+          sleep $INITIAL_DELAY
+          mcli alias set myminio $MINIO_ENDPOINT_URL $MINIO_ACCESS_KEY $MINIO_SECRET_KEY --api S3v4
+          mcli ls myminio/$MINIO_BUCKET_NAME
+          {{- range .Values.contentInitializer.filesToDownload }}
+          wget -q {{ .url | quote }} -O /tmp/downloaded_file
+          mcli cp /tmp/downloaded_file myminio/$MINIO_BUCKET_NAME/{{ .targetFileName | quote }}
+          rm -f /tmp/download_file
+          {{- end }}
+          mcli ls myminio/$MINIO_BUCKET_NAME
+{{- end }}

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3www
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "up42-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: s3www
+spec:
+  replicas: {{ .Values.s3www.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "up42-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: s3www
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        {{- include "up42-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: s3www
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  {{- include "up42-app.selectorLabels" . | nindent 18 }}
+                  app.kubernetes.io/component: s3www
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: s3www
+        image: "{{ .Values.s3www.image.repository }}:{{ .Values.s3www.image.tag }}"
+        imagePullPolicy: {{ .Values.s3www.image.pullPolicy }}
+        # Using args because of issues encountered with s3www's environment variables
+        args:
+          - -accessKey={{ .Values.minio.username }}
+          - -secretKey={{ include "up42-app.shared-minio-password" . }}
+          - -endpoint=http://{{ .Values.minio.service.name }}:{{ .Values.minio.service.port }}
+          - -bucket={{ .Values.minio.bucketName }}
+          - -address=0.0.0.0:{{ .Values.s3www.service.targetPort }}
+        ports:
+        - containerPort: {{ .Values.s3www.service.targetPort }}
+          name: s3www-port
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /index.html
+            port: s3www-port
+        readinessProbe:
+          httpGet:
+            path: /index.html
+            port: s3www-port

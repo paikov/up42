@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "up42-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: minio
+spec:
+  replicas: {{ .Values.minio.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "up42-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: minio
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        {{- include "up42-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: minio
+    spec:
+      serviceAccountName: {{ include "up42-app.minioServiceAccountName" . }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  {{- include "up42-app.selectorLabels" . | nindent 18 }}
+                  app.kubernetes.io/component: minio
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: minio
+        image: "{{ .Values.minio.image.repository }}:{{ .Values.minio.image.tag }}"
+        imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
+        command:
+        - /bin/bash
+        - -c
+        - |
+          mkdir -p /data/{{ .Values.minio.bucketName }} && \
+          minio server /data --console-address :9090
+        env:
+        - name: MINIO_ROOT_USER
+          value: {{ .Values.minio.username | quote }}
+        - name: MINIO_ROOT_PASSWORD
+          value: {{ include "up42-app.shared-minio-password" . | quote }}
+        {{- if .Values.minio.metrics.enabled }}
+        - name: MINIO_PROMETHEUS_AUTH_TYPE
+          value: {{ .Values.minio.metrics.authType | quote }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.minio.service.port }}
+          name: minio-api-port
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: minio-api-port
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: minio-api-port
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: data
+      {{- if and .Values.minio.persistence.enabled (not .Values.minio.persistence.existingClaim) }}
+        persistentVolumeClaim:
+          claimName: minio-pvc
+      {{- else if and .Values.minio.persistence.enabled .Values.minio.persistence.existingClaim }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.minio.persistence.existingClaim }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+
