@@ -6,6 +6,7 @@
 * Started out with static values for MinIO user/password, then for increased security, changed the password to be randomly generated and stored in a Secret object.
 * Shared storage for all MinIO pods: Tried to balance functionality, scalability, and possible limitations of different storage systems. Evaluated Deployment, StatefulSet, different settings for PVC, individual storage, shared storage, different accessModes. Eventually decided on Deployment+shared storage+ReadOnlyMany.
 * Issues with compatiblity with Prometheus's auto discovery: Caused by a labels discrepancy between the ServiceMonitor and the Prometheus configuration, as expected. Fixed by adding a custom label (*release: prometheus*) in the MinIO ServiceMonitor.
+* Issues with using environment variables to pass variables to s3www (at least using s3www's Docker image): Considered trying to create a custom Docker image, then discovered that passing command line arguments doesn't cause issues and moved to arguments instead.
 * Addressed scalability using HorizontalPodAutoscaler objects. Addressed high availability using PodDisruptionBudget objects, and a features such as RollingUpdate, readinessProbe/livenessProbe and podAntiAffinity in the Deployment objects.
 
 ## Concerns with the implementation

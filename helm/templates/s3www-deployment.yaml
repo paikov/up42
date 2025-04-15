@@ -37,7 +37,7 @@ spec:
       - name: s3www
         image: "{{ .Values.s3www.image.repository }}:{{ .Values.s3www.image.tag }}"
         imagePullPolicy: {{ .Values.s3www.image.pullPolicy }}
-        # Using args because s3www doesn't seem to use environment variables
+        # Using args because of issues encountered with s3www's environment variables
         args:
           - -accessKey={{ .Values.minio.username }}
           - -secretKey={{ include "up42-app.shared-minio-password" . }}
